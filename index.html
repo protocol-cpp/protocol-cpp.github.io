@@ -52,35 +52,35 @@
             }
     
             let userID = getCookie("uniqueUserID");
+            if (!userID) {
+                userID = Math.random().toString(36).substr(2, 10);
+                setCookie("uniqueUserID", userID, 365);
+            }
+    
             let liked = getCookie("liked") === "true";
             let disliked = getCookie("disliked") === "true";
     
             let data = await fetchData();
     
-            if (!userID) {
-                data.views++;
-                setCookie("uniqueUserID", Math.random().toString(36).substr(2, 10), 365);
-                await updateData(data);
-            }
-    
             document.getElementById("userCount").innerText = "Сколько людей просмотрело мое BIO: " + data.views;
             document.getElementById("likeCount").innerText = data.likes;
             document.getElementById("dislikeCount").innerText = data.dislikes;
     
-            if (liked) {
-                document.getElementById("likeBtn").disabled = true;
+            function disableButtons() {
+                document.getElementById("likeBtn").disabled = liked;
+                document.getElementById("dislikeBtn").disabled = disliked;
             }
-            if (disliked) {
-                document.getElementById("dislikeBtn").disabled = true;
-            }
+    
+            disableButtons();
     
             document.getElementById("likeBtn").addEventListener("click", async function () {
                 if (!liked && !disliked) {
                     data.likes++;
                     setCookie("liked", "true", 365);
-                    document.getElementById("likeBtn").disabled = true;
-                    await updateData(data);
+                    liked = true;
+                    disableButtons();
                     document.getElementById("likeCount").innerText = data.likes;
+                    await updateData(data);
                 }
             });
     
@@ -88,9 +88,10 @@
                 if (!disliked && !liked) {
                     data.dislikes++;
                     setCookie("disliked", "true", 365);
-                    document.getElementById("dislikeBtn").disabled = true;
-                    await updateData(data);
+                    disliked = true;
+                    disableButtons();
                     document.getElementById("dislikeCount").innerText = data.dislikes;
+                    await updateData(data);
                 }
             });
     
@@ -102,6 +103,7 @@
             });
         });
     </script>
+    
     
     <style>
         body {
