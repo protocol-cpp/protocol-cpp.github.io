@@ -6,81 +6,75 @@
     <title>MY BIO НЕЧЕ НЕ ЗНАЮ</title>
     <audio id="audio" src="ofni.mp3"></audio>
     <script>
+        const JSONBIN_URL = "https://api.jsonbin.io/v3/b/67b8ec27ad19ca34f80d1b5d";
+        const JSONBIN_API_KEY = "$2a$10$y6KYnd74HKSc4fJMvlETbeOWp8k8G0rcxIHIVGVILvwWorGI7JLRC";
+    
+        function getCookie(name) {
+            let matches = document.cookie.match(new RegExp(
+                "(?:^|; )" + name.replace(/([.$?*|{}()\[\]\\/+^])/g, '\\$1') + "=([^;]*)"
+            ));
+            return matches ? decodeURIComponent(matches[1]) : undefined;
+        }
+    
+        function setCookie(name, value, days) {
+            let date = new Date();
+            date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+            document.cookie = name + "=" + encodeURIComponent(value) + "; expires=" + date.toUTCString() + "; path=/";
+        }
+    
+        async function fetchData() {
+            try {
+                const response = await fetch(JSONBIN_URL, {
+                    headers: { "X-Master-Key": JSONBIN_API_KEY }
+                });
+                const data = await response.json();
+                return data.record;
+            } catch (error) {
+                console.error("Ошибка загрузки данных:", error);
+                return { views: 0, likes: 0, dislikes: 0 };
+            }
+        }
+    
+        async function updateData(newData) {
+            try {
+                await fetch(JSONBIN_URL, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Master-Key": JSONBIN_API_KEY
+                    },
+                    body: JSON.stringify(newData)
+                });
+            } catch (error) {
+                console.error("Ошибка обновления данных:", error);
+            }
+        }
+    
         document.addEventListener("DOMContentLoaded", async function () {
-            const JSONBIN_URL = "https://api.jsonbin.io/v3/b/67b8ec27ad19ca34f80d1b5d";
-            const JSONBIN_API_KEY = "$2a$10$y6KYnd74HKSc4fJMvlETbeOWp8k8G0rcxIHIVGVILvwWorGI7JLRC";
-    
-            async function fetchData() {
-                try {
-                    const response = await fetch(JSONBIN_URL, {
-                        headers: { "X-Master-Key": JSONBIN_API_KEY }
-                    });
-                    const data = await response.json();
-                    return data.record;
-                } catch (error) {
-                    console.error("Ошибка загрузки данных:", error);
-                    return { views: 0, likes: 0, dislikes: 0 };
-                }
-            }
-    
-            async function updateData(newData) {
-                try {
-                    await fetch(JSONBIN_URL, {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-Master-Key": JSONBIN_API_KEY
-                        },
-                        body: JSON.stringify(newData)
-                    });
-                } catch (error) {
-                    console.error("Ошибка обновления данных:", error);
-                }
-            }
-    
-            function getCookie(name) {
-                let matches = document.cookie.match(new RegExp(
-                    "(?:^|; )" + name.replace(/([.$?*|{}()\[\]\\/+^])/g, '\\$1') + "=([^;]*)"
-                ));
-                return matches ? decodeURIComponent(matches[1]) : undefined;
-            }
-    
-            function setCookie(name, value, days) {
-                let date = new Date();
-                date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
-                document.cookie = name + "=" + encodeURIComponent(value) + "; expires=" + date.toUTCString() + "; path=/";
-            }
-    
             let userID = getCookie("uniqueUserID");
-            if (!userID) {
-                userID = Math.random().toString(36).substr(2, 10);
-                setCookie("uniqueUserID", userID, 365);
-            }
-    
-            let liked = getCookie("liked") === "true";
-            let disliked = getCookie("disliked") === "true";
     
             let data = await fetchData();
+            
+            if (!userID) {
+                userID = Date.now().toString(36) + Math.random().toString(36).substr(2, 10);
+                setCookie("uniqueUserID", userID, 365);
+                data.views++;
+                await updateData(data);
+            }
     
-            document.getElementById("userCount").innerText = "Сколько людей просмотрело мое BIO: " + data.views;
+            document.getElementById("userCount").innerText = `Сколько людей просмотрело мое BIO: ${data.views}`;
             document.getElementById("likeCount").innerText = data.likes;
             document.getElementById("dislikeCount").innerText = data.dislikes;
     
-            function disableButtons() {
-                document.getElementById("likeBtn").disabled = liked;
-                document.getElementById("dislikeBtn").disabled = disliked;
-            }
-    
-            disableButtons();
+            let liked = getCookie("liked") === "true";
+            let disliked = getCookie("disliked") === "true";
     
             document.getElementById("likeBtn").addEventListener("click", async function () {
                 if (!liked && !disliked) {
                     data.likes++;
                     setCookie("liked", "true", 365);
-                    liked = true;
-                    disableButtons();
-                    document.getElementById("likeCount").innerText = data.likes;
                     await updateData(data);
+                    document.getElementById("likeCount").innerText = data.likes;
                 }
             });
     
@@ -88,21 +82,17 @@
                 if (!disliked && !liked) {
                     data.dislikes++;
                     setCookie("disliked", "true", 365);
-                    disliked = true;
-                    disableButtons();
-                    document.getElementById("dislikeCount").innerText = data.dislikes;
                     await updateData(data);
+                    document.getElementById("dislikeCount").innerText = data.dislikes;
                 }
             });
     
-            document.getElementById("playSound").addEventListener("click", function () {
-                let audio = document.getElementById("audio");
-                if (audio) {
-                    audio.play().catch(error => console.error("Ошибка воспроизведения звука:", error));
-                }
+            document.getElementById("playSound").addEventListener("click", function() {
+                document.getElementById("audio").play();
             });
         });
     </script>
+    
     
     
     <style>
