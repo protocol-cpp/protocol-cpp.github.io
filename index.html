@@ -6,62 +6,103 @@
     <title>MY BIO НЕЧЕ НЕ ЗНАЮ</title>
     <audio id="audio" src="ofni.mp3"></audio>
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", async function () {
+            const JSONBIN_URL = "https://api.jsonbin.io/v3/b/67b8ec27ad19ca34f80d1b5d";
+            const JSONBIN_API_KEY = "$2a$10$y6KYnd74HKSc4fJMvlETbeOWp8k8G0rcxIHIVGVILvwWorGI7JLRC";
+    
+            async function fetchData() {
+                try {
+                    const response = await fetch(JSONBIN_URL, {
+                        headers: { "X-Master-Key": JSONBIN_API_KEY }
+                    });
+                    const data = await response.json();
+                    return data.record;
+                } catch (error) {
+                    console.error("Ошибка загрузки данных:", error);
+                    return { views: 0, likes: 0, dislikes: 0 };
+                }
+            }
+    
+            async function updateData(newData) {
+                try {
+                    await fetch(JSONBIN_URL, {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-Master-Key": JSONBIN_API_KEY
+                        },
+                        body: JSON.stringify(newData)
+                    });
+                } catch (error) {
+                    console.error("Ошибка обновления данных:", error);
+                }
+            }
+    
             function getCookie(name) {
                 let matches = document.cookie.match(new RegExp(
                     "(?:^|; )" + name.replace(/([.$?*|{}()\[\]\\/+^])/g, '\\$1') + "=([^;]*)"
                 ));
                 return matches ? decodeURIComponent(matches[1]) : undefined;
             }
-
+    
             function setCookie(name, value, days) {
                 let date = new Date();
                 date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
                 document.cookie = name + "=" + encodeURIComponent(value) + "; expires=" + date.toUTCString() + "; path=/";
             }
-
+    
             let userID = getCookie("uniqueUserID");
-            let counter = localStorage.getItem("userCounter") || 0;
-
-            document.getElementById("playSound").addEventListener("click", function() {
-            document.getElementById("audio").play();
-        });
-
-            if (!userID) {
-                counter++;
-                localStorage.setItem("userCounter", counter);
-                setCookie("uniqueUserID", Math.random().toString(36).substr(2, 10), 365);
-            }
-
-            document.getElementById("userCount").innerText = "Сколько людей просмотрело мое BIO:  " + counter;
-
-            let likes = localStorage.getItem("likes") || 0;
-            let dislikes = localStorage.getItem("dislikes") || 0;
             let liked = getCookie("liked") === "true";
             let disliked = getCookie("disliked") === "true";
-
-            document.getElementById("likeCount").innerText = likes;
-            document.getElementById("dislikeCount").innerText = dislikes;
-
-            document.getElementById("likeBtn").addEventListener("click", function () {
+    
+            let data = await fetchData();
+    
+            if (!userID) {
+                data.views++;
+                setCookie("uniqueUserID", Math.random().toString(36).substr(2, 10), 365);
+                await updateData(data);
+            }
+    
+            document.getElementById("userCount").innerText = "Сколько людей просмотрело мое BIO: " + data.views;
+            document.getElementById("likeCount").innerText = data.likes;
+            document.getElementById("dislikeCount").innerText = data.dislikes;
+    
+            if (liked) {
+                document.getElementById("likeBtn").disabled = true;
+            }
+            if (disliked) {
+                document.getElementById("dislikeBtn").disabled = true;
+            }
+    
+            document.getElementById("likeBtn").addEventListener("click", async function () {
                 if (!liked && !disliked) {
-                    likes++;
-                    localStorage.setItem("likes", likes);
+                    data.likes++;
                     setCookie("liked", "true", 365);
-                    document.getElementById("likeCount").innerText = likes;
+                    document.getElementById("likeBtn").disabled = true;
+                    await updateData(data);
+                    document.getElementById("likeCount").innerText = data.likes;
                 }
             });
-
-            document.getElementById("dislikeBtn").addEventListener("click", function () {
+    
+            document.getElementById("dislikeBtn").addEventListener("click", async function () {
                 if (!disliked && !liked) {
-                    dislikes++;
-                    localStorage.setItem("dislikes", dislikes);
+                    data.dislikes++;
                     setCookie("disliked", "true", 365);
-                    document.getElementById("dislikeCount").innerText = dislikes;
+                    document.getElementById("dislikeBtn").disabled = true;
+                    await updateData(data);
+                    document.getElementById("dislikeCount").innerText = data.dislikes;
+                }
+            });
+    
+            document.getElementById("playSound").addEventListener("click", function () {
+                let audio = document.getElementById("audio");
+                if (audio) {
+                    audio.play().catch(error => console.error("Ошибка воспроизведения звука:", error));
                 }
             });
         });
     </script>
+    
     <style>
         body {
             background: #000000;
