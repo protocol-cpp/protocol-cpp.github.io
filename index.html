@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MY BIO НЕЧЕ НЕ ЗНАЮ</title>
+    <audio id="audio" src="ofni.mp3"></audio>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            function getCookie(name) {
+                let matches = document.cookie.match(new RegExp(
+                    "(?:^|; )" + name.replace(/([.$?*|{}()\[\]\\/+^])/g, '\\$1') + "=([^;]*)"
+                ));
+                return matches ? decodeURIComponent(matches[1]) : undefined;
+            }
+
+            function setCookie(name, value, days) {
+                let date = new Date();
+                date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+                document.cookie = name + "=" + encodeURIComponent(value) + "; expires=" + date.toUTCString() + "; path=/";
+            }
+
+            let userID = getCookie("uniqueUserID");
+            let counter = localStorage.getItem("userCounter") || 0;
+
+            document.getElementById("playSound").addEventListener("click", function() {
+            document.getElementById("audio").play();
+        });
+
+            if (!userID) {
+                counter++;
+                localStorage.setItem("userCounter", counter);
+                setCookie("uniqueUserID", Math.random().toString(36).substr(2, 10), 365);
+            }
+
+            document.getElementById("userCount").innerText = "Сколько людей просмотрело мое BIO:  " + counter;
+
+            let likes = localStorage.getItem("likes") || 0;
+            let dislikes = localStorage.getItem("dislikes") || 0;
+            let liked = getCookie("liked") === "true";
+            let disliked = getCookie("disliked") === "true";
+
+            document.getElementById("likeCount").innerText = likes;
+            document.getElementById("dislikeCount").innerText = dislikes;
+
+            document.getElementById("likeBtn").addEventListener("click", function () {
+                if (!liked && !disliked) {
+                    likes++;
+                    localStorage.setItem("likes", likes);
+                    setCookie("liked", "true", 365);
+                    document.getElementById("likeCount").innerText = likes;
+                }
+            });
+
+            document.getElementById("dislikeBtn").addEventListener("click", function () {
+                if (!disliked && !liked) {
+                    dislikes++;
+                    localStorage.setItem("dislikes", dislikes);
+                    setCookie("disliked", "true", 365);
+                    document.getElementById("dislikeCount").innerText = dislikes;
+                }
+            });
+        });
+    </script>
+    <style>
+        body {
+            background: #000000;
+            color: #00bfff;
+            font-family: monospace;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+        .container {
+            border: 2px solid #00bfff; 
+            padding: 20px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 20px #00bfff; 
+            position: relative;
+        }
+        .buttons, .likes {
+            margin-top: 20px;
+        }
+        .likes button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px;
+            padding: 10px 20px;
+            border: 2px solid #00bfff;
+            text-decoration: none;
+            color: #00bfff;
+            border-radius: 5px;
+            transition: 0.3s;
+            text-shadow: 0 0 10px #00bfff, 0 0 20px #00bfff;
+            background-color: transparent;
+            min-width: 100px;
+            height: 40px;
+        }
+        .likes button:hover {
+            background-color: #00bfff;
+            color: #0d0d0d;
+            box-shadow: 0 0 20px #00bfff;
+        }
+        .window-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        .window-controls button {
+            width: 30px;
+            height: 30px;
+            background-color: transparent;
+            border: 2px solid #00bfff;
+            border-radius: 50%;
+            color: #00bfff;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+        .window-controls button:hover {
+            background-color: #33ccff;
+            color: #0d0d0d;
+        }
+        .window-controls button:active {
+            background-color: #66ccff;
+        }
+        .ascii {
+            white-space: pre;
+            font-size: 12px;
+            color: #00bfff;
+            text-shadow: 0 0 10px #00bfff, 0 0 20px #00bfff;
+        }
+        .buttons {
+            margin-top: 20px;
+        }
+        .buttons a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px;
+            padding: 10px 20px;
+            border: 2px solid #00bfff;
+            text-decoration: none;
+            color: #00bfff;
+            border-radius: 5px;
+            transition: 0.3s;
+            text-shadow: 0 0 10px #00bfff, 0 0 20px #00bfff;
+            background-color: transparent;
+            min-width: 100px;
+            height: 40px;
+        }
+        .buttons a:hover {
+            background-color: #00bfff;
+            color: #0d0d0d;
+            box-shadow: 0 0 20px #00bfff;
+        }
+        .counter {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            font-size: 16px;
+            color: #00bfff;
+            text-shadow: 0 0 10px #00bfff;
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="container">
+        <div class="window-controls">
+            <audio id="audio" src="ofni.mp3"></audio>
+            <button id="playSound">-</button>
+            <button id="playSound">X</button>
+        </div>
+        <div class="ascii">
+
+
+
+ФИО : А хуй тебе                                
+Возраст : 15 годиков                            
+мои занятие : Страдать хуйней в инете           
+
+
+
+ ____  ____  _____  ____  _____  ___  _____  __      ___  ____  ____ 
+(  _ \(  _ \(  _  )(_  _)(  _  )/ __)(  _  )(  )    / __)(  _ \(  _ \
+ )___/ )   / )(_)(   )(   )(_)(( (__  )(_)(  )(__  ( (__  )___/ )___/
+(__)  (_)\_)(_____) (__) (_____)\___)(_____)(____)()\___)(__)  (__)  
+<div class="counter" id="userCount">Сколько людей просмотрело мое BIO: 0</div>
+        </div>
+        <div class="likes">
+            <button id="likeBtn">👍 <span id="likeCount">0</span></button>
+            <button id="dislikeBtn">👎 <span id="dislikeCount">0</span></button>
+        </div>
+        <div class="buttons">
+            <a href="https://t.me/OwnRussia">TELEGRAM</a>
+            <a href="https://discord.com/users/1216079432427507782">DISCORD</a>
+        </div>
+    </div>
+</body>
+</html>
